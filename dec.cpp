@@ -260,7 +260,22 @@ bool MyDecryptFile(
     // Determine the number of bytes to decrypt at a time. 
     // This must be a multiple of ENCRYPT_BLOCK_SIZE. 
 
-    dwBlockLen = 1000 - 1000 % ENCRYPT_BLOCK_SIZE; 
+//    dwBlockLen = 1000 - 1000 % ENCRYPT_BLOCK_SIZE;  -> ORIGINAL
+
+    // Important:
+    // with the original dwBlockLen line the code won't work for the file businesspapers.doc (gives error 0x800005 NTE_BAD_DATA).
+    // So, by increasing the total block len the decryptor works well in all cases.
+    // Many people had this problem: in order to solve it you have to make sure 
+    // that the buffer length is large enough during the decryption process. Same thing is for the encryptor, 
+    // but I didn't modify it since it's not used for the challenge.
+
+    // We can see a nice effect: with this line
+    //dwBlockLen = 100000 - 1000 % ENCRYPT_BLOCK_SIZE;
+    // we obtain an image with partial loss of data (bottom half of the .jpg is green but we can still see the flag)
+    // if we increase more, like this
+    dwBlockLen = 10000000 - 1000 % ENCRYPT_BLOCK_SIZE; 
+    // we obtain the full image without any loss of data. So make sure to adjust this parameter to make the code work also for larger files (:
+
     dwBufferLen = dwBlockLen; 
 
     //---------------------------------------------------------------
@@ -350,9 +365,7 @@ bool MyDecryptFile(
             f[i] = tolower(f[i]);
         }
 
-        BYTE * filename = (BYTE *)f;
-        cout << filename << '\n';    
-        cout << strlen(f) << '\n';    
+        cout << "Hashing \"" << (BYTE *)f << "\" as plain IV \n";    
     
 
         // Hash the password. 
@@ -426,23 +439,21 @@ bool MyDecryptFile(
 
         //-----------------------------------------------------------
         // Decrypt the block of data. 
-//        if(!CryptDecrypt(
-//              hKey_AES, 
-//              0, 
-//              fEOF, 
-//              0, 
-//              pbBuffer, 
-//              &dwCount))
-//        {
-//            MyHandleError(
-//                TEXT("Error during CryptDecrypt!\n"), 
-//                GetLastError()); 
-//            goto Exit_MyDecryptFile;
-//        }
 
-        // invoking CryptDecrypt in the if clause seems to makes it fail. The problem only is when 
-        // businesspapers.doc file is given as file to decrypt. For all the other files the code works.
-        CryptDecrypt(hKey_AES, 0, fEOF, 0, pbBuffer, &dwCount);
+        if(!CryptDecrypt(
+              hKey_AES, 
+              0, 
+              fEOF, 
+              0, 
+              pbBuffer, 
+              &dwCount))
+        {
+            MyHandleError(
+                TEXT("Error during CryptDecrypt!\n"), 
+                GetLastError()); 
+            goto Exit_MyDecryptFile;
+        }
+
 
         //-----------------------------------------------------------
         // Write the decrypted data to the destination file. 

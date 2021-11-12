@@ -258,6 +258,8 @@ bool MyEncryptFile(
     // Determine the number of bytes to encrypt at a time. 
     // This must be a multiple of ENCRYPT_BLOCK_SIZE.
     // ENCRYPT_BLOCK_SIZE is set by a #define statement.
+
+    // IMPORTANT note at this line in dec.cpp
     dwBlockLen = 1000 - 1000 % ENCRYPT_BLOCK_SIZE; 
 
     //---------------------------------------------------------------
@@ -365,10 +367,7 @@ bool MyEncryptFile(
             f[i] = tolower(f[i]);
         }
 
-        BYTE * filename = (BYTE *)f;
-        cout << filename << '\n';    
-        cout << strlen(f) << '\n';    
-    
+        cout << "Hashing \"" << (BYTE *)f << "\" as plain IV \n";    
 
         // Hash the password. 
         if(CryptHashData(
@@ -454,10 +453,12 @@ bool MyEncryptFile(
         ))
         { 
             MyHandleError(
-                TEXT("Error during CryptEncrypt/CryptDecrypt. \n"), 
+                TEXT("Error during CryptEncrypt. \n"), 
                 GetLastError()); 
             goto Exit_MyEncryptFile;
         } 
+//        CryptEncrypt(hKey_AES, 0, FALSE, 0, pbBuffer, &dwCount, dwBufferLen);
+
 
         //-----------------------------------------------------------
         // Write the encrypted data to the destination file. 
