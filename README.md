@@ -10,7 +10,7 @@ g++ -fpermissive -Wwrite-strings .\dec.cpp -o .\dec.exe -w
 
 # example usage:
 ```console
-.\dec.exe .\dec.exe ".\SampleFiles\BusinessPapers.doc" "output.jpg" "businesspapers.doc"
+.\dec.exe ".\SampleFiles\BusinessPapers.doc" "output.jpg" "businesspapers.doc"
 ```
 where 
 - ".\SampleFiles\BusinessPapers.doc" is the encrypted source file
